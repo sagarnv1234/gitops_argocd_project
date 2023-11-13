@@ -1,0 +1,67 @@
+pipeline{
+    agent any
+
+    environment{
+        
+        DOCKERHUB_USERNAME = "sagarv840"
+        APP_NAME = "gitops-argo-app"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        IMAGE_NAME = "${DOCKERHUB_USERNAME}"+ "${APP_NAME}"
+        REGISTRY_CREDS= 'dockerhub'
+    }
+
+    stages{
+        stage('clean workspace'){
+            steps{
+                script{
+                    cleanWs()
+                }
+            }
+        }
+    
+        stage('checkout SCM'){
+            steps{
+                script{
+                    git credentialsId: 'github',
+                    url:'https://github.com/sagarnv1234/gitops_argocd_project.git',
+                    branch:'main'
+                }
+            }
+        }
+        stage('Build Docker image'){
+            steps{
+                script{
+                   docker_image = docker.build "${IMAGE_NAME}"
+                }
+            }
+        }
+         stage('Push Docker image'){
+            steps{
+                script{
+                   docker.withRegistry('',REGISTRY_CREDS){
+                       docker_image.push("$BUILD_NUMBER")
+                       docker_image.push('latest')
+                   }
+                }
+            }
+        }
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//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
